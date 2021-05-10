@@ -151,7 +151,7 @@ automata = Automata([],['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'ζ', 
 , Transition([52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62], None,None, {'decnumber': 62})
 , Transition([52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62], None,None, {'decnumber': 62})
 ])
-tokens = {'number': {'token': '((0γ1γ2γ3γ4γ5γ6γ7γ8γ9)((0γ1γ2γ3γ4γ5γ6γ7γ8γ9))α)', 'isExcept': False}, 'decnumber': {'token': '(0γ1γ2γ3γ4γ5γ6γ7γ8γ9)δ((0γ1γ2γ3γ4γ5γ6γ7γ8γ9)α)δ.δ(0γ1γ2γ3γ4γ5γ6γ7γ8γ9)δ((0γ1γ2γ3γ4γ5γ6γ7γ8γ9)α)', 'isExcept': False}, 'white': {'token': '((\nγ\rγ\tγ )((\nγ\rγ\tγ ))α)', 'isExcept': False}}
+tokens = {'number': {'token': '((0γ1γ2γ3γ4γ5γ6γ7γ8γ9)((0γ1γ2γ3γ4γ5γ6γ7γ8γ9))α)', 'isExcept': True}, 'decnumber': {'token': '(0γ1γ2γ3γ4γ5γ6γ7γ8γ9)δ((0γ1γ2γ3γ4γ5γ6γ7γ8γ9)α)δ.δ(0γ1γ2γ3γ4γ5γ6γ7γ8γ9)δ((0γ1γ2γ3γ4γ5γ6γ7γ8γ9)α)', 'isExcept': False}, 'white': {'token': '((\nγ\rγ\tγ )((\nγ\rγ\tγ ))α)', 'isExcept': False}}
 keywords = {'while': 'wδhδiδlδe', 'do': 'dδo'}
 ignoreChars = []
 

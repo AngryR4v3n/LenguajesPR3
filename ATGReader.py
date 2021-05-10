@@ -15,7 +15,7 @@ class ATGReader():
         self.words = file
         self.characters = {}
         self.keywords = {}
-        self.productions = []
+        self.productions = {}
         self.tokens = {}
         self.compilerName = ""
         self.counter = 0
@@ -40,6 +40,9 @@ class ATGReader():
                 elif individual[0] == "TOKENS":
 
                     self.get_characters("TOKENS", "PRODUCTIONS")
+
+                elif individual[0] == "PRODUCTIONS":
+                    self.get_productions(len(self.words))
                     
 
                 #probably a comment or sth else ...
@@ -120,7 +123,40 @@ class ATGReader():
         elif parsing == "KEYWORDS":
             self.keyword_to_regex()
 
-    
+    def get_productions(self, fileLimit):
+        innerCounter = self.counter
+        currentLine = self.words[innerCounter]
+        ind = currentLine.split()
+        while ind[0] != "END":
+            currentLine = self.words[innerCounter]
+            ind = currentLine.split()
+            ind.append(".")
+            if len(currentLine) > 0:
+                individual = utils.splitkeepsep(currentLine, "=")
+                if len(individual) > 1:
+                    leftHand = individual.pop(0).replace("=", "")
+                    actual = ""
+                    for sub in individual:
+                        actual += sub.strip()
+                    rightHand = actual
+                    
+
+                    value = rightHand.strip()
+                    while currentLine[-1] != '.' and innerCounter < fileLimit:
+                        innerCounter += 1
+                        currentLine = self.words[innerCounter]
+                        value += " " + currentLine.strip()
+
+                    self.productions[leftHand] = value
+                    innerCounter += 1
+                else:
+                    innerCounter += 1
+            else:
+                innerCounter += 1
+
+        
+            
+
     def grammar_and_op_check(self, currentLine):
         #revisamos que todo nice en gramatica, que exista un igual y que el final sea un . 
         if "=" in currentLine and currentLine[-1] == "." and currentLine != "": 

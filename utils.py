@@ -3,6 +3,11 @@ import os
 sys.path.append(os.path.abspath(os.path.join("AFD/AFN")))
 from BuilderEnum import BuilderEnum
 import re
+import functools
+"""
+jalado de: https://programmaticallyspeaking.com/split-on-separator-but-keep-the-separator-in-python.html
+"""
+def splitkeepsep(s, sep): return functools.reduce(lambda acc, elem: acc[:-1] + [acc[-1] + elem] if elem == sep else acc + [elem], re.split("(%s)" % re.escape(sep), s), []) 
 
 def find_all_positions(string, substring):
     res = [i for i in range(len(string)) if string.startswith(substring, i)]
