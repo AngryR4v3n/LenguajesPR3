@@ -1,4 +1,5 @@
 import utils
+import production_utils
 import sys  
 import os
 import re 
@@ -134,10 +135,11 @@ class ATGReader():
             if len(currentLine) > 0:
                 individual = utils.splitkeepsep(currentLine, "=")
                 if len(individual) > 1:
-                    leftHand = individual.pop(0).replace("=", "")
+                    leftHand = individual.pop(0).replace("=", "").strip().split("<")[0]
                     actual = ""
                     for sub in individual:
                         actual += sub.strip()
+                    
                     rightHand = actual
                     
 
@@ -154,7 +156,24 @@ class ATGReader():
             else:
                 innerCounter += 1
 
-        
+        print("Done productions")
+        self.to_method()
+    
+    def to_method(self):
+        methods = {}
+        prod_keys = self.productions.keys()
+        prod_tokens = {}
+        for key in prod_keys:
+            right_hand = self.productions[key]
+            res = production_utils.production_tokens(key, right_hand, self.productions, self.tokens)
+            prod_tokens[key] = res
+            
+
+        print("done")
+
+
+    
+
             
 
     def grammar_and_op_check(self, currentLine):

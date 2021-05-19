@@ -1,60 +1,53 @@
-COMPILER Double    
-	
-(.
-			/*--------------Scanner Especification----------*/
-.)
+COMPILER Aritmetica    
 
 CHARACTERS 
 
+letter = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz". 
 digit = "0123456789" .
 tab = CHR(9).
 eol = CHR(10).
-blanco = eol+CHR(13)+tab+' '.
 
 KEYWORDS
 
-while = "while". 
+while = "while".
 do = "do".
+if = "if".
+switch = "switch"
 
 TOKENS
 
-number = digit{digit} EXCEPT KEYWORDS.
-decnumber = digit{digit}"."digit{digit}.
-white = blanco{blanco}.
+ident = letter{letter|digit} EXCEPT KEYWORDS.
+number = digit{digit}.
 
 PRODUCTIONS
 
-Expr= {Stat ";"{white}}{white}".".
+Expr= {Stat ";"}".".
 
-Stat = 							(.double value=0;.)
-	Expression<ref value>		(.System.Console.WriteLine("Resultado: {0}",value);.)
+Stat = 							(.value = 0.)
+	expression<value>		(.print(str(value)).)
 	.
 
-Expression<ref double result> =			(.double result1=0,result2=0;.)
-	Term<ref result1>
-	{    "+"Term<ref result2>		(.result1+=result2;.)
-	   | "-"Term<ref result2>		(.result1-=result2;.)
-	}								(.result=result1;.)
+expression<result> =		(.result1, result2 = 0, 0.)
+	Term<result1>
+	{    "+"Term<result2>		(.result1+=result2.)
+	   | "-"Term<result2>		(.result1-=result2.)
+	}
+                                (.return result1.)
 	.
 
-Term<ref double result>=				(.double result1=0,result2=0;.)
-	Factor<ref result1>
-	{    "*"Factor<ref result2>	(.result1*=result2;.)
-	   | "/"Factor<ref result2>	(.result1/=result2;.)
-	}							(.result=result1;.)
+Term<result> =				(.result1, result2 =  0,0.)
+	Factor<result1>
+	{    "*"Factor<result2>	(.result1*=result2.)
+	   | "/"Factor<result2>	(.result1/=result2.)
+	}							(.result=result1.)
+                                (.return result.)
 	.
-
-
-Factor<ref double result> =		(.double sign=1;.)
-	["-"						(.sign = -1;.)
-	]
-	(Number<ref result>
-	 |"("Expression<ref result>")"
-	)							(.result*=sign;.)
-	.
-
-Number<ref double result> =	
-	(number				
-	|decnumber)(.result = double.Parse(LastToken.Value);.)
-	.
-END Double
+	
+Factor<result> =	(.signo=1.) 
+	["-"(.signo = -1.)] 
+	( Number<result> | "(" expression<result> ")")
+    (.result*=signo.)
+	(.return result.).
+	
+Number<result> =  number (.result = int(self.last_token.value).) (.return result.).
+END Aritmetica

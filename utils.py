@@ -197,7 +197,7 @@ def identifier(value, dictionary):
             parsed += ch
             word = ""
         elif ch in BuilderEnum.ALL_OPERATORS.value and word == "":
-            parsed +=ch
+            parsed += ch
 
 
     if word != "":
