@@ -10,7 +10,7 @@ def production_tokens(key, string, production_dict, token_dict):
     current = 0
     counter = 0
     stack = []
-    symb_to_ignore = first_v2(production_dict)
+    symb_to_ignore = first(production_dict, token_dict)
     for i in range(len(string)-1):
         
         if skip > 0:
@@ -84,7 +84,7 @@ def production_tokens(key, string, production_dict, token_dict):
                 stack.append(tkk)
 
             elif ch == "]":
-                tkk = Token(type_t="ENDIF", value="", identifier=None)
+                tkk = Token.Tokenizer(type_t="ENDIF", value="", identifier=None)
                 stack.append(tkk)
             
             elif ch == '"' and counter == 0:
@@ -104,8 +104,8 @@ def production_tokens(key, string, production_dict, token_dict):
         if ch == "(" and follow_ch == ".":
             x, skip = get_code(string[i:])
             print('found code', x[2:])
-            first_de_linea = firstCode(string[i:], production_dict, symb_to_ignore)
-            stack.append(Token.Tokenizer(type_t="CODE", value=x[2:], identifier=first_de_linea))
+            
+            stack.append(Token.Tokenizer(type_t="CODE", value=x[2:], identifier=""))
 
         #if entre parentesis
         elif ch == "(" and follow_ch != ".":
@@ -116,9 +116,8 @@ def production_tokens(key, string, production_dict, token_dict):
                 i += 1
 
             x = firstCode(buffer, production_dict, symb_to_ignore)
-            tkk_if = Token.Tokenizer(type_t="IFP", value="if()", identifier=x)
+            tkk_if = Token.Tokenizer(type_t="IFP", value="", identifier=x)
             stack.append(tkk_if)
-
         current += 1
 
 
@@ -252,29 +251,37 @@ def get_code(string):
 
 
 
-def first_v2(productions):
+def first(productions, tokens):
     endings = [")", "}", "]"]
     #productions = {'expr': 'codigo'}
     #dict_ntokens = {'expr': [+, *]}
     #expr hace refencia a term y term tiene -, / 
     dict_ntokens = {}
     new_tokens = []
+
+    #AQUI REVISAMOS LOS FIRST QUE ESTAN DIRECTAMENTE EN LA FUNCION ENTIENDASE LOS QUE ESTAN DENTRO DE "" O TOKENS
     for l in productions:
         code = productions[l]
         counter = 0
         #revise unicamente los ")" que estan dentro del codio de la produccion 
+        string = ""
         while counter < len(code):
+            string += code[counter]
             if code[counter] == '"':
                 #OJO LO MEJOR ES ANALIZAR POR EL | Y HACER SPLIT PARA SABER CUANTOS HAY EN EL PRIMERO 
                 if code[counter+1] not in endings:
                     new_tokens.append(code[counter+1])
                 counter += 2
+            elif string.strip() in tokens:
+                new_tokens.append(string.strip())
+                string = ""
             counter +=1
         dict_ntokens[l] = new_tokens
         new_tokens = []
+
+    #REVISAMOS LOS RECURSIVOS QUE SE ENCUENTRAN EN OTRAS PRODUCCIONES A LAS QUE SE HACEN REFERENCIA EN LA QUE SE ESTA EVALUANDO
         
     #revisar los ")" que esten dentro de las funciones a las que haga referencia la produccion
-    
     for l in productions: #l es la produccion que estoy leyendo
         #si esta vacio significa que no tiene terminales y busca en la primera referencia
         if len(dict_ntokens[l]) == 0:
@@ -282,15 +289,12 @@ def first_v2(productions):
             counter = 0
             for x in productions:
                 if str(x) in code:
-                    additional_tokens=dict_ntokens[x]
-                    dict_ntokens[l] = additional_tokens
+                    dict_ntokens[l] = dict_ntokens[x]
                     counter += 1
                 if counter > 0:
                     break   
 
     return dict_ntokens
-
-
 
 def firstCode(code, productions, dict_ntokens):
     endings = [")", "}", "]"]
