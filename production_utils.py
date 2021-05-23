@@ -59,9 +59,8 @@ def production_tokens(key, string, production_dict, token_dict):
                 stack.append(tkk)
 
             elif ch == "|":
-                
-                print("found pipe")
-                print(operator)
+                tkk = Token.Tokenizer(type_t="PIPE", value="|", identifier=None)
+                stack.append(tkk)
             elif ch == "[":
                 buffer = ""
                 while ch != "]":
@@ -75,10 +74,12 @@ def production_tokens(key, string, production_dict, token_dict):
                 stack.append(tkk_if)
                 
             elif ch == "}":
-                print("found end while")
+                tkk = Token.Tokenizer(type_t="ENDWHILE", value="", identifier=None)
+                stack.append(tkk)
 
             elif ch == "]":
-                print("found end optional")
+                tkk = Token(type_t="ENDIF", value="", identifier=None)
+                stack.append(tkk)
             
             elif ch == '"' and counter == 0:
                # stack[-1] is while 
@@ -97,32 +98,74 @@ def production_tokens(key, string, production_dict, token_dict):
         if ch == "(" and follow_ch == ".":
             x, skip = get_code(string[i:])
             print('found code', x[2:])
-            first_de_linea = firstCode(string[i:] production_dict, symb_to_ignore)
+            first_de_linea = firstCode(string[i:], production_dict, symb_to_ignore)
             stack.append(Token.Tokenizer(type_t="CODE", value=x[2:], identifier=first_de_linea))
+
+        #if entre parentesis
+        elif ch == "(" and follow_ch != ".":
+            buffer = ""
+            while ch != ")":
+                ch = string[i]
+                buffer += ch
+                i += 1
+
+            x = firstCode(buffer, production_dict, symb_to_ignore)
+            tkk_if = Token.Tokenizer(type_t="IFP", value="if()", identifier=x)
+            stack.append(tkk_if)
 
         current += 1
 
 
     return stack
-"""
-def construct_code(type_t):
+
+def code_prods(prod_tokens):
     code = ""
     flagWhile = None
-    for x in range(len(type_t)):
-        if type_t[x].type == 'WHILE':
+    counterPipes = 0
+    counterTabs = 0
+    for x in range(len(prod_tokens)):
+        if prod_tokens[x].type == "WHILE":
             code = "while"
-            for i in type_t[x].identifier:
-                code += " self.expect(" + i + ") or"
-            #delete ultimo or.
+            for i in prod_tokens[x].identifier:
+                code += " self.expect(" + '"' + i + '"' + ") or"
             code = code[:-2]
-            code = "\n"
+            code += ":\n"
             flagWhile = x
-        elif type_t[x].type == "PIPE":
-            steps = x - flagWhile
+        elif prod_tokens[x].type == "IF":
+            flagWhile = x
+            first = prod_tokens[x].identifier
+            code += "if lastToken == " + "'" + first[0] + "': \n"
+        elif prod_tokens[x].type == "IFP":
+            flagWhile = x
+        elif prod_tokens[x].type == "PIPE":
+            steps = x - flagWhile + 1
+            firstWhile = prod_tokens[flagWhile].identifier
+            for i in firstWhile:
+                first = i 
+                counterPipes += 1
+                if counterPipes <= 1:
+                    code += "if lastToken == " + "'" + first + "': \n"
+                    codeStack = []
+                    for c in range(1,steps-1):
+                        innerCode = ""
+                        n = prod_tokens[x-c]
+                        print(n)
+                        innerCode = "\t" + n.value + "\n"
+                        codeStack.append(innerCode)
+                    reverCodeStack = codeStack.copy()
+                    reverCodeStack.reverse()
+                    print(reverCodeStack)
+                    code += ''.join(reverCodeStack)
+                else:
+                    code += "if lastToken == " + "'" + first + "': \n"
+                    for c in range(1,steps):
+                        
+                        n = prod_tokens[x+c]
+                        print(n)
+                        code += "\t" + n.value + "\n"
 
-            type_t[steps] #el factor
-            #for 
-"""
+    print("code generado")
+    return code
 
 
 
