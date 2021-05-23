@@ -30,17 +30,23 @@ def production_tokens(key, string, production_dict, token_dict):
             is_token = check_dict(operator.strip(), token_dict)
 
             if is_production:
-                #stack[-1] is while
-                """ if stack[-1].type == "WHILE":
-                    #llamamos a first
-                    stack[-1].identifier= symb_to_ignore[operator.strip()]"""
-                print("found production!")
-                tkk = Token.Tokenizer(type_t="PRODUCTION", value=f"self.{operator}")
-                stack.append(tkk)
+                if ch == "<":
+                    buffer = ""
+                    while ch != ">":
+                        ch = string[i]
+                        buffer += ch
+                        i += 1
+                    buffer = buffer.replace("<", "(").replace(">", ")")
+                    vals = buffer.split("(")[1].replace(")", "")
 
-                #def first() -> array -> stack[-1].extend(first())
+                    code = vals + " = " + "self." + operator.strip() + buffer
+                    tkk = Token.Tokenizer(type_t="PRODUCTION", value=f"{code}", identifier=None)
+                    stack.append(tkk)
+                else:
+                    tkk = Token.Tokenizer(type_t="PRODUCTION", value=f"self.{operator}()", identifier=None)
+                    stack.append(tkk)
                 
-
+                
             if is_token:
                 print("found token!")
 
@@ -122,21 +128,37 @@ def code_prods(prod_tokens):
     code = ""
     flagWhile = None
     counterPipes = 0
-    counterTabs = 0
+    counterTabs = 1
     for x in range(len(prod_tokens)):
         if prod_tokens[x].type == "WHILE":
-            code = "while"
+            code += (counterTabs*'\t') + "while"
             for i in prod_tokens[x].identifier:
                 code += " self.expect(" + '"' + i + '"' + ") or"
             code = code[:-2]
             code += ":\n"
             flagWhile = x
+            counterTabs +=1
         elif prod_tokens[x].type == "IF":
-            flagWhile = x
+            
             first = prod_tokens[x].identifier
-            code += "if lastToken == " + "'" + first[0] + "': \n"
+            code += (counterTabs*'\t') + "if lastToken == " + "'" + first[0] + "': \n"
+            counterTabs += 1
+        elif prod_tokens[x].type == "CODE":
+            if flagWhile != None:
+                pass
+            else:
+                code += (counterTabs*'\t') + prod_tokens[x].value + "\n"
+        elif prod_tokens[x].type == "PRODUCTION":
+            if flagWhile != None:
+                pass
+            else:
+                code += (counterTabs*'\t') + prod_tokens[x].value + "\n"
         elif prod_tokens[x].type == "IFP":
             flagWhile = x
+
+        elif prod_tokens[x].type == "ENDWHILE":
+            flagWhile = None
+            counterTabs -= 1
         elif prod_tokens[x].type == "PIPE":
             steps = x - flagWhile + 1
             firstWhile = prod_tokens[flagWhile].identifier
@@ -144,27 +166,39 @@ def code_prods(prod_tokens):
                 first = i 
                 counterPipes += 1
                 if counterPipes <= 1:
-                    code += "if lastToken == " + "'" + first + "': \n"
+                    code += (counterTabs*'\t') + "if lastToken == " + "'" + first + "': \n"
                     codeStack = []
+                    counterTabs += 1 
+
+                    #Aqui viene lo que esta dentro del if
                     for c in range(1,steps-1):
                         innerCode = ""
                         n = prod_tokens[x-c]
                         print(n)
-                        innerCode = "\t" + n.value + "\n"
+                        innerCode = (counterTabs*'\t') + n.value + "\n"
                         codeStack.append(innerCode)
+
+
+                    counterTabs -= 1 
                     reverCodeStack = codeStack.copy()
                     reverCodeStack.reverse()
-                    print(reverCodeStack)
+                    
                     code += ''.join(reverCodeStack)
+
+
                 else:
-                    code += "if lastToken == " + "'" + first + "': \n"
+                    code += (counterTabs*'\t') + "if lastToken == " + "'" + first + "': \n"
+                    counterTabs += 1
                     for c in range(1,steps):
                         
                         n = prod_tokens[x+c]
                         print(n)
-                        code += "\t" + n.value + "\n"
+                        code += (counterTabs*'\t') + n.value + "\n"
 
-    print("code generado")
+                    counterTabs -= 1
+
+    
+    print(code)
     return code
 
 
