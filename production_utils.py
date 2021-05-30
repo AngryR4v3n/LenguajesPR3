@@ -11,6 +11,7 @@ def production_tokens(key, string, production_dict, token_dict):
     counter = 0
     stack = []
     symb_to_ignore = first(production_dict, token_dict)
+    ifFlag = False
     for i in range(len(string)-1):
         
         if skip > 0:
@@ -108,7 +109,7 @@ def production_tokens(key, string, production_dict, token_dict):
             stack.append(Token.Tokenizer(type_t="CODE", value=x[2:], identifier=""))
 
         #if entre parentesis
-        elif ch == "(" and follow_ch != ".":
+        elif ch == "(" and follow_ch != "." and follow_ch != '"':
             buffer = ""
             while ch != ")":
                 ch = string[i]
@@ -118,6 +119,14 @@ def production_tokens(key, string, production_dict, token_dict):
             x = firstCode(buffer, production_dict, symb_to_ignore)
             tkk_if = Token.Tokenizer(type_t="IFP", value="", identifier=x)
             stack.append(tkk_if)
+            ifFlag = True
+
+        #posible end if?
+        elif ch == ")" and follow_ch != '"' and ifFlag:
+            ifFlag = False
+            tkk_end = Token.Tokenizer(type_t="ENDIFP", value="", identifier=None)
+            stack.append(tkk_end)
+            
         current += 1
 
 
@@ -154,6 +163,14 @@ def code_prods(prod_tokens):
                 code += (counterTabs*'\t') + prod_tokens[x].value + "\n"
         elif prod_tokens[x].type == "IFP":
             flagWhile = x
+
+        elif prod_tokens[x].type == "ENDIF":
+            flagWhile = None
+            counterTabs -= 1
+
+        elif prod_tokens[x].type == "ENDIFP":
+            flagWhile = None
+            
 
         elif prod_tokens[x].type == "ENDWHILE":
             flagWhile = None
