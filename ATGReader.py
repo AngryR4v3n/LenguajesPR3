@@ -21,6 +21,7 @@ class ATGReader():
         self.compilerName = ""
         self.counter = 0
         self.ignore = []
+        self.methods = {}
     """
     Gets called to start analyzing the ATG file, reads line per line checking first word of each line
     """
@@ -135,7 +136,7 @@ class ATGReader():
             if len(currentLine) > 0:
                 individual = utils.splitkeepsep(currentLine, "=")
                 if len(individual) > 1:
-                    leftHand = individual.pop(0).replace("=", "").strip().split("<")[0]
+                    leftHand = individual.pop(0).replace("=", "").strip()
                     actual = ""
                     for sub in individual:
                         actual += sub.strip()
@@ -163,11 +164,33 @@ class ATGReader():
         methods = {}
         prod_keys = self.productions.keys()
         prod_tokens = {}
+        translator = {}
+        #self.productions = prod_tokens
+        for key2 in prod_keys:
+            method, string = production_utils.funct_name(key2)
+            translator[string] = key2
+            #self.methods[method] = prod_tokens[key2]
+
         for key in prod_keys:
             right_hand = self.productions[key]
             res = production_utils.production_tokens(key, right_hand, self.productions, self.tokens)
             semiCode = production_utils.code_prods(res)
             prod_tokens[key] = semiCode
+
+        
+        prod_tokens = production_utils.clean(prod_tokens)
+        
+        for key2 in prod_keys:
+            method, string = production_utils.funct_name(key2)
+            translator[string] = key2
+            self.methods[method] = prod_tokens[key2]
+        
+        
+
+        
+        
+        
+            
             
 
         print("done")

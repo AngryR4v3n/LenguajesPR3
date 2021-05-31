@@ -75,11 +75,9 @@ scanner.write(reading)
 
 
 
-
-#atgAutomatas.convert_characters()
-#atgAutomatas.convert_keywords()
-#atgAutomatas.convert_tokens()
-#atgAutomatas.test()
+scanner = open("code.py", "w")
+methods = atgAutomatas.methods_string()
+scanner.write(methods)
 
 print("End parsing ATG")
 

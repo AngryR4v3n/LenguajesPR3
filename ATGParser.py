@@ -29,7 +29,13 @@ class ATGParser():
         return automata.states, automata.language, automata.start, automata.end, automata.fn
 
 
+    def methods_string(self):
+        keys = self.ATG.methods.keys()
+        string = ""
+        for key in keys:
+            string+= key + self.ATG.methods[key] + "\n"
 
+        return string
 
     def test(self):
         automata = automataGenerator.test()

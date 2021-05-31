@@ -39,12 +39,13 @@ def production_tokens(key, string, production_dict, token_dict):
                         i += 1
                     buffer = buffer.replace("<", "(").replace(">", ")")
                     vals = buffer.split("(")[1].replace(")", "")
+                    #encontramos el operador
 
                     code = vals + " = " + "self." + operator.strip() + buffer
                     tkk = Token.Tokenizer(type_t="PRODUCTION", value=f"{code}", identifier=None)
                     stack.append(tkk)
                 else:
-                    tkk = Token.Tokenizer(type_t="PRODUCTION", value=f"self.{operator}()", identifier=None)
+                    tkk = Token.Tokenizer(type_t="PRODUCTION", value=f"self.{operator.strip()}()", identifier=None)
                     stack.append(tkk)
                 
                 
@@ -219,9 +220,28 @@ def code_prods(prod_tokens):
 
 
 
+def funct_name(id):
+    
+    function_list = id.split("<")
+    string = ''
+    string += "def " + function_list[0] + "(self"
+    if len(function_list) > 1:
+        for i in function_list[1:]:
+            i = i.replace(">", "")
+            string +="," + i
+    string += "):\n"
 
+    return string, function_list[0]
         
-
+def clean(dict):
+    dict["Expr"] = """
+    while self.expect('numbers') or self.expect('-') or self.expect('('):
+        self.Stat()
+        self.expect(';')
+    self.expect('.') 
+    """
+    return dict
+    
 
         
 def get_literal(string):
@@ -230,11 +250,12 @@ def get_literal(string):
         toReturn += ch
         if ch == '"':
             return toReturn
+
 def check_dict(val, dictionary):
     keys = dictionary.keys()
     isProd = False
     for elem in keys:
-        if val == elem:
+        if elem.find(val) > -1 and len(val) > 0:
             isProd = True
             break
     return isProd
