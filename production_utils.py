@@ -50,9 +50,9 @@ def production_tokens(key, string, production_dict, token_dict):
                 
                 
             if is_token:
-                print("found token!")
-
-
+                operator = operator.strip()
+                tkk = Token.Tokenizer(type_t="TOKEN", value=f"self.read('{operator}', True)")
+                stack.append(tkk)
             if ch == "{":
 
                 buffer = ""
@@ -137,7 +137,7 @@ def code_prods(prod_tokens):
     code = ""
     flagWhile = None
     counterPipes = 0
-    counterTabs = 1
+    counterTabs = 2
     for x in range(len(prod_tokens)):
         if prod_tokens[x].type == "WHILE":
             code += (counterTabs*'\t') + "while"
@@ -150,8 +150,15 @@ def code_prods(prod_tokens):
         elif prod_tokens[x].type == "IF":
             
             first = prod_tokens[x].identifier
-            code += (counterTabs*'\t') + "if lastToken == " + "'" + first[0] + "': \n"
-            counterTabs += 1
+            if len(first[0]) > 1:
+                code += (counterTabs*'\t') + "if self.expect(" + "'" + first[0] + "'"+", True):\n"
+                counterTabs += 1
+                code += (counterTabs*'\t') + "self.read(" + "'" + first[0] + "', True)\n"
+            else:
+                code += (counterTabs*'\t') + "if self.expect(" + "'" + first[0] + "'"+"):\n"
+                counterTabs += 1
+                code += (counterTabs*'\t') + "self.read(" + "'" + first[0] + "')\n"
+            #counterTabs += 1
         elif prod_tokens[x].type == "CODE":
             if flagWhile != None:
                 pass
@@ -183,10 +190,16 @@ def code_prods(prod_tokens):
                 first = i 
                 counterPipes += 1
                 if counterPipes <= 1:
-                    code += (counterTabs*'\t') + "if lastToken == " + "'" + first + "': \n"
-                    codeStack = []
-                    counterTabs += 1 
-
+                    if len(first) > 1:
+                        code += (counterTabs*'\t') + "if self.expect(" + "'" + first + "'" + ", True): \n"
+                        codeStack = []
+                        counterTabs += 1 
+                        code += (counterTabs*'\t') + "self.read(" + "'" + first + "', True)\n"
+                    else:
+                        code += (counterTabs*'\t') + "if self.expect(" + "'" + first + "'" + "): \n"
+                        codeStack = []
+                        counterTabs += 1 
+                        code += (counterTabs*'\t') + "self.read(" + "'" + first + "')\n"
                     #Aqui viene lo que esta dentro del if
                     for c in range(1,steps-1):
                         innerCode = ""
@@ -204,8 +217,9 @@ def code_prods(prod_tokens):
 
 
                 else:
-                    code += (counterTabs*'\t') + "if lastToken == " + "'" + first + "': \n"
+                    code += (counterTabs*'\t') + "if self.expect(" + "'" + first + "'" +  ")"+": \n"
                     counterTabs += 1
+                    code += (counterTabs*'\t') + "self.read(" + "'" + first + "')\n"
                     for c in range(1,steps):
                         
                         n = prod_tokens[x+c]
@@ -213,6 +227,8 @@ def code_prods(prod_tokens):
                         code += (counterTabs*'\t') + n.value + "\n"
 
                     counterTabs -= 1
+        elif prod_tokens[x].type == "TOKEN":
+            code +=(counterTabs*'\t') + prod_tokens[x].value + "\n"
 
     
     print(code)
@@ -224,7 +240,7 @@ def funct_name(id):
     
     function_list = id.split("<")
     string = ''
-    string += "def " + function_list[0] + "(self"
+    string += "\t"+"def " + function_list[0] + "(self"
     if len(function_list) > 1:
         for i in function_list[1:]:
             i = i.replace(">", "")
@@ -234,12 +250,13 @@ def funct_name(id):
     return string, function_list[0]
         
 def clean(dict):
-    dict["Expr"] = """
-    while self.expect('numbers') or self.expect('-') or self.expect('('):
-        self.Stat()
-        self.expect(';')
-    self.expect('.') 
-    """
+    dict["Expr"] = '''
+\t\twhile self.expect('number', True) or self.expect('decnumber', True) or self.expect('-') or self.expect('('):
+\t\t\tself.Stat()
+\t\t\tself.read(";")
+\t\t\tself.read(".")
+    '''
+    
     return dict
     
 
@@ -255,7 +272,7 @@ def check_dict(val, dictionary):
     keys = dictionary.keys()
     isProd = False
     for elem in keys:
-        if elem.find(val) > -1 and len(val) > 0:
+        if elem.split("<")[0].find(val) > -1 and len(val) > 0:
             isProd = True
             break
     return isProd
@@ -353,6 +370,7 @@ def firstCode(code, productions, dict_ntokens):
                             counter += 1
                         if counter > 0:
                             break
+                        
     else:
         while counter < len(code):
             if code[counter] == '"':

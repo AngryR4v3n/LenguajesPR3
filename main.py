@@ -48,6 +48,7 @@ reading = """f = open('test.txt', 'r')
 def reader_tester():
     x = f.read()
     pos = 0
+    stackTokens = []
     while pos < len(x):
         resultado, pos, aceptacion = automata.simulate_DFA(x, pos, ignoreChars)
         if aceptacion:
@@ -62,13 +63,27 @@ def reader_tester():
                     key=keyword_search(resultado)
                     if key:
                         print(" ->  ",repr(resultado), "identified keyword", key, " <-")
+                        tkk = Token(type=key, value=resultado)
+                        stackTokens.append(tkk)
                     else:
                         print(" ->  ",repr(resultado), "identified", identifier, " <-")
-                else:    
+                        tkk = Token(type=identifier, value=resultado)
+                        stackTokens.append(tkk)
+                else:
                     print(" ->  ",repr(resultado), "identified", identifier, " <-")
+                    tkk = Token(type=identifier, value=resultado)
+                    stackTokens.append(tkk)
         else:
             print(" ->  ",repr(resultado), "unidentified string of chars <-")
+            tkk = Token(type="ANY", value=resultado)
+            stackTokens.append(tkk)
     
+    for elem in stackTokens:
+        if elem.value == " ":
+            stackTokens.remove(elem)
+    
+    parser = Parser(stackTokens)
+    parser.Expr()
 
 x = reader_tester()    """
 scanner.write(reading)
@@ -76,8 +91,77 @@ scanner.write(reading)
 
 
 scanner = open("code.py", "w")
-methods = atgAutomatas.methods_string()
-scanner.write(methods)
 
+imports = """
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join('AFD/AFN/parsers')))
+from Automata import Automata
+from Transition import Transition
+"""
+
+clase="""
+class Parser:
+	def __init__(self, tokens):
+		self.tokens = tokens
+		self.id_token = 0
+		self.actual_token = self.tokens[self.id_token]
+		self.last_token = ''
+
+	def advance( self ):
+		self.id_token += 1
+		if self.id_token < len(self.tokens):
+			self.actual_token = self.tokens[self.id_token]
+			self.last_token = self.tokens[self.id_token - 1]
+
+	def expect(self, item, arg = False):
+		og = self.id_token
+		possible = False
+		try:
+			ans = self.read(item, arg)
+			if type(ans) == bool:
+				possible = ans
+			else:
+				possible = True
+		except:
+			possible = False
+		self.id_token = og
+		self.actual_token = self.tokens[self.id_token]
+		self.last_token = self.tokens[self.id_token - 1]
+		return possible
+
+	def read(self, item, type = False):
+		if type:
+			if self.actual_token.type == item:
+				self.advance()
+				return True
+			else:
+				return False
+				#print('expected ', item, ' got ', self.actual_token.type)
+		else:
+			if self.actual_token.value == item:
+				self.advance()
+				return True
+			else:
+				return False
+"""
+methods = atgAutomatas.methods_string()
+scanner.write(imports)
+scanner.write(clase)
+scanner.write(methods)
+tokenClass = """
+class Token:
+	def __init__(self, type, value):
+		self.type = type
+		self.value = value
+
+	def __repr__(self):
+		return f'<Token {self.type} value: {self.value} >'
+"""
+scanner.write(tokenClass)
+scanner.write(buildAutomata)
+scanner.write(keysearch)
+scanner.write(reading)
+scanner.close()
 print("End parsing ATG")
 
