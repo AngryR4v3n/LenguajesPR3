@@ -150,8 +150,11 @@ class Automata:
 
         if len(token) != 1:
             token = token[:-1]
-
-        return token, checkpoint + 1, aceptacion
+        
+        if len(token) > 1:
+            return token, checkpoint + 1, aceptacion
+        else:
+            return token, checkpoint, aceptacion
 
     def find_transition(self, target, char):
         for func in self.fn:
