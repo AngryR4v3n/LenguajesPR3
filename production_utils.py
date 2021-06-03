@@ -192,7 +192,7 @@ def code_prods(prod_tokens):
             for i in firstWhile:
                 first = i 
                 counterPipes += 1
-                if counterPipes <= 1:
+                if counterPipes <= 2:
                     if len(first) > 1:
                         code += (counterTabs*'\t') + "if self.expect(" + "'" + first + "'" + ", True): \n"
                         codeStack = []

@@ -101,7 +101,8 @@ class Parser:
 			result = self.Number(result)
 		if self.expect('decnumber',True): 
 			self.read('decnumber',True)
-			result = self.expression(result)
+			#result = self.expression(result)
+			result = self.Number(result)
 			
 		if self.expect('('): 
 			self.read('(')
