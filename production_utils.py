@@ -29,7 +29,12 @@ def production_tokens(key, string, production_dict, token_dict):
             is_production = check_dict(operator.strip(), production_dict)
 
             is_token = check_dict(operator.strip(), token_dict)
-
+            poss_follow = check_follo(symb_to_ignore, ch)
+            if poss_follow and follow_ch == '"' and stack[-1].type == "PRODUCTION":
+                print(symb_to_ignore)
+                val = "self.read('" + ch + "')"
+                tkk = Token.Tokenizer(type_t="FOLLOW", value=val, identifier=[ch])
+                stack.append(tkk)
             if is_production:
                 if ch == "<":
                     buffer = ""
@@ -278,7 +283,13 @@ def code_prods(prod_tokens):
     return code
 
 
-
+def check_follo(first, ch):
+    possibleFollow = False
+    for i in first:
+        for x in i:
+            if ch != x:
+                possibleFollow = True
+    return possibleFollow
 def funct_name(id):
     
     function_list = id.split("<")

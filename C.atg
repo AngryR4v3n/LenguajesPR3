@@ -6,7 +6,7 @@ letter = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".
 digit = "0123456789" .
 tab = CHR(9).
 eol = CHR(10).
-
+ops = "+-/*"
 KEYWORDS
 
 while = "while".
@@ -17,7 +17,7 @@ switch = "switch"
 TOKENS
 number = digit{digit} EXCEPT KEYWORDS.
 decnumber = digit{digit}"."digit{digit}.
-
+operators = ops.
 PRODUCTIONS
 
 Expr= {Stat ";"}".".

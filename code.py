@@ -11,6 +11,31 @@ class Parser:
 		self.id_token = 0
 		self.actual_token = self.tokens[self.id_token]
 		self.last_token = ''
+		self.ok = True
+
+		self.check()
+
+	
+	def check(self):
+		
+		charCounter = 0
+		for i in range(len(self.tokens)-1):
+			token = self.tokens[i] 
+			nextToken = self.tokens[i+1]
+			charCounter += len(token.value)
+			#caso 1
+			if token.type == "operators" and nextToken.type == "ANY":
+				print(f'Error sintactico, caracter {charCounter}')
+				
+				
+			elif (token.type == "ANY") and (nextToken.value == ";"):
+				print(f'Error sintactico, caracter {charCounter}')
+				self.ok = False
+				break
+				
+
+
+
 
 	def advance( self ):
 		self.id_token += 1
@@ -105,7 +130,7 @@ class Parser:
 		if self.expect('('): 
 			self.read('(')
 			result = self.expression(result)
-			
+			self.read(')')
 		result*=signo
 		return result
 
@@ -300,6 +325,8 @@ def reader_tester():
             stackTokens.remove(elem)
     
     parser = Parser(stackTokens)
-    parser.Expr()
+    if parser.ok:
+        parser.Expr()
+    
 
 x = reader_tester()    
