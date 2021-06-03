@@ -99,11 +99,9 @@ class Parser:
 		if self.expect('number', True): 
 			self.read('number', True)
 			result = self.Number(result)
-		if self.expect('decnumber',True): 
-			self.read('decnumber',True)
-			#result = self.expression(result)
+		if self.expect('decnumber', True): 
+			self.read('decnumber', True)
 			result = self.Number(result)
-			
 		if self.expect('('): 
 			self.read('(')
 			result = self.expression(result)
@@ -112,10 +110,10 @@ class Parser:
 		return result
 
 	def Number(self,result):
-		if self.expect('number', True): 
-			self.read('number', True)
-		if self.expect('decnumber',True): 
-			self.read('decnumber',True)
+		if self.expect('number',True): 
+			self.read('number',True)
+		if self.expect('decnumber', True): 
+			self.read('decnumber', True)
 			
 		result = float(self.last_token.value)
 		return result

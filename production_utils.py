@@ -188,56 +188,85 @@ def code_prods(prod_tokens):
         elif prod_tokens[x].type == "PIPE":
             steps = x - flagWhile + 1
             firstWhile = prod_tokens[flagWhile].identifier
-            counterPipes = 0
             for i in firstWhile:
                 first = i 
                 counterPipes += 1
-                if counterPipes <= 2:
-                    if len(first) > 1:
-                        code += (counterTabs*'\t') + "if self.expect(" + "'" + first + "'" + ", True): \n"
-                        codeStack = []
-                        counterTabs += 1 
-                        code += (counterTabs*'\t') + "self.read(" + "'" + first + "', True)\n"
-                        
-                    else:
-                        code += (counterTabs*'\t') + "if self.expect(" + "'" + first + "'" + "): \n"
-                        codeStack = []
-                        counterTabs += 1 
-                        code += (counterTabs*'\t') + "self.read(" + "'" + first + "')\n"
-                    #Aqui viene lo que esta dentro del if
-                    for c in range(1,steps-1):
-                        innerCode = ""
-                        n = prod_tokens[x-c]
-                        print(n)
-                        if n.type != "TOKEN":
-                            innerCode = (counterTabs*'\t') + n.value + "\n"
+                if len(firstWhile) <= 2:
+                    if counterPipes <= 1:
+                        if len(first) > 1:
+                            code += (counterTabs*'\t') + "if self.expect(" + "'" + first + "',True): \n"
+                            codeStack = []
+                            counterTabs += 1
+                            code += (counterTabs*'\t') + "self.read(" + "'" + first + "',True)\n"
+                        else:
+                            code += (counterTabs*'\t') + "if self.expect(" + "'" + first + "'): \n"
+                            codeStack = []
+                            counterTabs += 1
+                            code += (counterTabs*'\t') + "self.read(" + "'" + first + "')\n"
+                        for c in range(1,steps-1):
+                            innerCode = ""
+                            n = prod_tokens[x-c]
+                            if n.type != "TOKEN":
+                                innerCode = (counterTabs*'\t') + n.value + "\n"
                             codeStack.append(innerCode)
-
-
-                    counterTabs -= 1 
-                    reverCodeStack = codeStack.copy()
-                    reverCodeStack.reverse()
-                    
-                    code += ''.join(reverCodeStack)
-
-
-                else:
-                    if len(first) > 1: 
-                        code += (counterTabs*'\t') + "if self.expect(" + "'" + first + "'" +  ",True)"+": \n"
-                        counterTabs += 1
-                        code += (counterTabs*'\t') + "self.read(" + "'" + first + "',True)\n"
+                        counterTabs -= 1
+                        reverCodeStack = codeStack.copy()
+                        reverCodeStack.reverse()
+                        code += ''.join(reverCodeStack)
                     else:
-                        code += (counterTabs*'\t') + "if self.expect(" + "'" + first + "'" +  ")"+": \n"
-                        counterTabs += 1
-                        code += (counterTabs*'\t') + "self.read(" + "'" + first + "')\n"
-                    for c in range(1,steps):
-                        
-                        n = prod_tokens[x+c]
-                        print(n)
-                        if n.type != "TOKEN":
-                            code += (counterTabs*'\t') + n.value + "\n"
-
-                    counterTabs -= 1
+                        if len(first) > 1:
+                            code += (counterTabs*'\t') + "if self.expect(" + "'" + first + "', True): \n"
+                            counterTabs += 1
+                            code += (counterTabs*'\t') + "self.read(" + "'" + first + "', True)\n"
+                        else:
+                            code += (counterTabs*'\t') + "if self.expect(" + "'" + first + "'): \n"
+                            codeStack = []
+                            counterTabs += 1
+                            code += (counterTabs*'\t') + "self.read(" + "'" + first + "')\n"
+                        for c in range(1,steps):
+                            n = prod_tokens[x+c]
+                            print(n)
+                            if n.type != "TOKEN":
+                                code += (counterTabs*'\t') + n.value + "\n"
+                        counterTabs -= 1
+                else:
+                    if counterPipes <= 2:
+                        if len(first) > 1:
+                            code += (counterTabs*'\t') + "if self.expect(" + "'" + first + "', True): \n"
+                            codeStack = []
+                            counterTabs += 1
+                            code += (counterTabs*'\t') + "self.read(" + "'" + first + "', True)\n"
+                        else: 
+                            code += (counterTabs*'\t') + "if self.expect(" + "'" + first + "'): \n"
+                            codeStack = []
+                            counterTabs += 1
+                            code += (counterTabs*'\t') + "self.read(" + "'" + first + "')\n"
+                        for c in range(1,steps-1):
+                            innerCode = ""
+                            n = prod_tokens[x-c]
+                            if n.type != "TOKEN":
+                                innerCode = (counterTabs*'\t') + n.value + "\n"
+                            codeStack.append(innerCode)
+                        counterTabs -= 1
+                        reverCodeStack = codeStack.copy()
+                        reverCodeStack.reverse()
+                        code += ''.join(reverCodeStack)
+                    else:
+                        if len(first) > 1:
+                            code += (counterTabs*'\t') + "if self.expect(" + "'" + first + "', True): \n"
+                            counterTabs += 1
+                            code += (counterTabs*'\t') + "self.read(" + "'" + first + "', True)\n"
+                        else:
+                            code += (counterTabs*'\t') + "if self.expect(" + "'" + first + "'): \n"
+                            codeStack = []
+                            counterTabs += 1
+                            code += (counterTabs*'\t') + "self.read(" + "'" + first + "')\n"
+                        for c in range(1,steps):
+                            n = prod_tokens[x+c]
+                            print(n)
+                            if n.type != "TOKEN":
+                                code += (counterTabs*'\t') + n.value + "\n"
+                        counterTabs -= 1
         elif prod_tokens[x].type == "TOKEN":
             if flagWhile != None:
                 pass
