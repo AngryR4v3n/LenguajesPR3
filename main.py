@@ -11,14 +11,13 @@ reader.build_atg()
 atgAutomatas = ATGParser(reader)
 
 #Scanner writer
-scanner = open("Scanner.py", "w")
+
 imports = """import sys
 import os
 sys.path.append(os.path.abspath(os.path.join('AFD/AFN/parsers')))
 from Automata import Automata
 from Transition import Transition
 """
-scanner.write(imports)
 
 #Obtenemos automata..
 #automata.states, automata.language, automata.start, automata.end, automata.fn
@@ -31,9 +30,6 @@ tokens = {reader.tokens}
 keywords = {reader.keywords}
 ignoreChars = {reader.ignore}
 """
-scanner.write(buildAutomata)
-scanner.write("\n"*3)
-
 
 keysearch = """\n
 def keyword_search(string):
@@ -41,7 +37,6 @@ def keyword_search(string):
         if string == elem:
             return elem
     return None\n"""
-scanner.write(keysearch)
 
 reading = """f = open('test.txt', 'r')
 
@@ -86,8 +81,6 @@ def reader_tester():
     parser.Expr()
 
 x = reader_tester()    """
-scanner.write(reading)
-
 
 
 scanner = open("code.py", "w")
