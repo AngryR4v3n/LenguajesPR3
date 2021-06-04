@@ -171,7 +171,7 @@ class ATGReader():
         for key in prod_keys:
             right_hand = self.productions[key]
             res = production_utils.production_tokens(key, right_hand, self.productions, self.tokens)
-            semiCode = production_utils.code_prods(res)
+            semiCode = production_utils.token_to_code(res)
             prod_tokens[key] = semiCode
 
         

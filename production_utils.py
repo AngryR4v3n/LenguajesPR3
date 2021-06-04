@@ -3,6 +3,7 @@ import os
 sys.path.append(os.path.abspath(os.path.join("AFD/AFN")))
 import tokenizer as Token
 
+CLOSURE = [")", "}", "]"]
 
 """
 Produce tokens en base a las producciones recibidas por atg
@@ -86,9 +87,9 @@ def production_tokens(key, string, production_dict, token_dict):
                     ch = string[i]
                     buffer += ch
                     i += 1
-                buffer = buffer.replace("{", "").replace("}", "")
+                buffer = clean_str(buffer)
                 first_de_linea = charLinea(buffer, production_dict, first_per_prod, token_dict.keys())
-                tkk = Token.Tokenizer(type_t="WHILE", value="while First()", identifier=[])
+                tkk = Token.Tokenizer(type_t="LOOP", value="", identifier=[])
                 tkk.identifier = first_de_linea
                 stack.append(tkk)
 
@@ -111,7 +112,7 @@ def production_tokens(key, string, production_dict, token_dict):
                 stack.append(tkk_if)
                 
             elif ch == "}":
-                tkk = Token.Tokenizer(type_t="ENDWHILE", value="", identifier=None)
+                tkk = Token.Tokenizer(type_t="ENDLOOP", value="", identifier=None)
                 stack.append(tkk)
 
             elif ch == "]":
@@ -156,7 +157,7 @@ def production_tokens(key, string, production_dict, token_dict):
 IN: Tokens producidos
 OUT: string de codigo.
 """
-def code_prods(prod_tokens):
+def token_to_code(prod_tokens):
     code = ""
     flag = None
     conditionalCount = 0
@@ -165,7 +166,7 @@ def code_prods(prod_tokens):
     steps = 0
     for x in range(len(prod_tokens)):
        
-        if prod_tokens[x].type == "WHILE":
+        if prod_tokens[x].type == "LOOP":
             code += (counterTabs*'\t') + "while"
             for i in prod_tokens[x].identifier:
                 code += " self.curr_token.value==" + '"' + i + '"' + " or"
@@ -205,10 +206,12 @@ def code_prods(prod_tokens):
         elif prod_tokens[x].type == "END_PARENS_IF":
             flag = None
             
-        elif prod_tokens[x].type == "ENDWHILE":
+        elif prod_tokens[x].type == "ENDLOOP":
             flag = None
             counterTabs -= 1
 
+        elif prod_tokens[x].type == "FOLLOW":
+            code += ((counterTabs+1)*'\t') + 'self.expect('+"'"+prod_tokens[x].identifier[0] +"')" + "\n"
         elif prod_tokens[x].type == "OR":
             steps = x - flag + 1
             firstWhile = prod_tokens[flag].identifier
@@ -310,10 +313,9 @@ OUT:
     <Dict> {"nombre_prod": [caracteres]}
 """
 def first(productions, tokens):
-    endings = [")", "}", "]"]
 
-    dict_ntokens = {}
-    new_tokens = []
+    tokens_per_prod = {}
+    toAdd = []
 
     
     for l in productions:
@@ -326,35 +328,35 @@ def first(productions, tokens):
             clean_string = clean_str(string)
             if code[counter] == '"':
                 
-                if code[counter+1] not in endings:
-                    new_tokens.append(code[counter+1])
+                if code[counter+1] not in CLOSURE:
+                    toAdd.append(code[counter+1])
                 counter += 2
             elif clean_string in tokens:
-                new_tokens.append(clean_string)
+                toAdd.append(clean_string)
                 string = ""
             elif clean_string in tokens:
-                new_tokens.append(clean_string)
+                toAdd.append(clean_string)
                 string = ""
             counter +=1
-        dict_ntokens[l] = new_tokens
-        new_tokens = []
+        tokens_per_prod[l] = toAdd
+        toAdd = []
 
     
         
     
     for l in productions: 
         
-        if len(dict_ntokens[l]) == 0:
+        if len(tokens_per_prod[l]) == 0:
             code = productions[l]
             counter = 0
             for x in productions:
                 if str(x) in code:
-                    dict_ntokens[l] = dict_ntokens[x]
+                    tokens_per_prod[l] = tokens_per_prod[x]
                     counter += 1
                 if counter > 0:
                     break   
 
-    return dict_ntokens
+    return tokens_per_prod
 
 
 
@@ -418,8 +420,8 @@ def get_code(string):
 
 
 def charLinea(code, productions, dict_ntokens, tokens_dict):
-    endings = [")", "}", "]"]
-    new_tokens = []
+    
+    toAdd = []
     counter = 0
     string = ""
 
@@ -434,19 +436,19 @@ def charLinea(code, productions, dict_ntokens, tokens_dict):
 
             clean_string = clean_str(string)
             if x[0] == '"':                
-                new_tokens.append(x[1])
+                toAdd.append(x[1])
             
             elif clean_string in tokens_dict:
-                new_tokens.append(clean_string)
+                toAdd.append(clean_string)
                 string = ""
             elif clean_string in tokens_dict:
-                new_tokens.append(clean_string)
+                toAdd.append(clean_string)
                 string = ""
             else:
                 for l in productions:
                     for n in productions:
                         if str(n) in x:
-                            new_tokens = dict_ntokens[n]
+                            toAdd = dict_ntokens[n]
                             counter += 1
                         if counter > 0:
                             break
@@ -455,25 +457,25 @@ def charLinea(code, productions, dict_ntokens, tokens_dict):
         while counter < len(code):
             if code[counter] == '"':
                 
-                if code[counter+1] not in endings:
-                    new_tokens.append(code[counter+1])
+                if code[counter+1] not in CLOSURE:
+                    toAdd.append(code[counter+1])
                 counter += 2
             counter +=1
         
-        if len(new_tokens) == 0:
+        if len(toAdd) == 0:
             
             for l in productions:
                 for x in productions:
                     if str(x) in code:
-                        new_tokens = dict_ntokens[x]
+                        toAdd = dict_ntokens[x]
                         counter += 1
                     if counter > 0:
                         break   
-    return new_tokens
+    return toAdd
 
 
 def clean_str(string):
-    string = string.replace("(","").replace(")","").replace("|","").strip().lower()
+    string = string.replace("(","").replace(")","").replace("|","").replace("{", "").replace("}","").strip().lower()
     return string
 
 

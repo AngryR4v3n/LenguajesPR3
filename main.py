@@ -70,14 +70,14 @@ def reader_tester():
                     stackTokens.append(tkk)
         else:
             print(" ->  ",repr(resultado), "unidentified string of chars <-")
-            tkk = Token(type="ANY", value=resultado)
+            tkk = Token(type="UNDEFINED", value=resultado)
             stackTokens.append(tkk)
     
     for elem in stackTokens:
         if elem.value == " ":
             stackTokens.remove(elem)
     
-    parser = Parser(stackTokens)
+    parser = TokenInterpreter(stackTokens)
     parser.Expr()
 
 x = reader_tester()    """
@@ -94,22 +94,22 @@ from Transition import Transition
 """
 
 clase="""
-class Parser:
+class TokenInterpreter:
 	def __init__(self, tokens):
 		self.tokens = tokens
-		self.id_token = 0
-		self.curr_token = self.tokens[self.id_token]
+		self.counter = 0
+		self.curr_token = self.tokens[self.counter]
 		self.other_token = ""
 
 	def next_token( self ):
-		self.id_token += 1
-		if self.id_token < len(self.tokens):
-			self.curr_token = self.tokens[self.id_token]
-			self.other_token = self.tokens[self.id_token - 1]
+		self.counter += 1
+		if self.counter < len(self.tokens):
+			self.curr_token = self.tokens[self.counter]
+			self.other_token = self.tokens[self.counter - 1]
 
 	def expect(self, item, tkk = False):
 		charCount = 1
-		for j in range(0,self.id_token):
+		for j in range(0,self.counter):
 			charCount += len(self.tokens[j].value)
 			
 		if tkk:
@@ -137,8 +137,6 @@ class Token:
 		self.type = type
 		self.value = value
 
-	def __repr__(self):
-		return f'<Token {self.type} value: {self.value} >'
 """
 scanner.write(tokenClass)
 scanner.write(buildAutomata)
