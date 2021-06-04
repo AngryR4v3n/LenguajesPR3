@@ -10,32 +10,7 @@ class Parser:
 		self.tokens = tokens
 		self.id_token = 0
 		self.actual_token = self.tokens[self.id_token]
-		self.last_token = ''
-		self.ok = True
-
-		self.check()
-
-	
-	def check(self):
-		
-		charCounter = 0
-		for i in range(len(self.tokens)-1):
-			token = self.tokens[i] 
-			nextToken = self.tokens[i+1]
-			charCounter += len(token.value)
-			#caso 1
-			if token.type == "operators" and nextToken.type == "ANY":
-				print(f'Error sintactico, caracter {charCounter}')
-				
-				
-			elif (token.type == "ANY") and (nextToken.value == ";"):
-				print(f'Error sintactico, caracter {charCounter}')
-				self.ok = False
-				break
-				
-
-
-
+		self.last_token = ""
 
 	def advance( self ):
 		self.id_token += 1
@@ -43,39 +18,25 @@ class Parser:
 			self.actual_token = self.tokens[self.id_token]
 			self.last_token = self.tokens[self.id_token - 1]
 
-	def expect(self, item, arg = False):
-		og = self.id_token
-		possible = False
-		try:
-			ans = self.read(item, arg)
-			if type(ans) == bool:
-				possible = ans
-			else:
-				possible = True
-		except:
-			possible = False
-		self.id_token = og
-		self.actual_token = self.tokens[self.id_token]
-		self.last_token = self.tokens[self.id_token - 1]
-		return possible
-
 	def read(self, item, type = False):
+		
 		if type:
 			if self.actual_token.type == item:
 				self.advance()
 				return True
 			else:
+				print ("Error Sintactico" + str(item))
 				return False
-				#print('expected ', item, ' got ', self.actual_token.type)
 		else:
 			if self.actual_token.value == item:
 				self.advance()
 				return True
 			else:
+				print ("Error Sintactico" + str(item))
 				return False
 	def Expr(self):
 
-		while self.expect('number', True) or self.expect('decnumber', True) or self.expect('-') or self.expect('('):
+		while self.actual_token.type == 'number' or self.actual_token.type == 'decnumber' or self.actual_token.value == '-' or self.actual_token.value == '(':
 			self.Stat()
 			self.read(";")
 			self.read(".")
@@ -88,12 +49,12 @@ class Parser:
 	def expression(self,result):
 		result1, result2 =0, 0
 		result1 = self.Term(result1)
-		while self.expect("+") or self.expect("-") :
-			if self.expect('+'): 
+		while self.actual_token.value=="+" or self.actual_token.value=="-" :
+			if self.actual_token.value == '+': 
 				self.read('+')
 				result2 = self.Term(result2)
 				result1+=result2
-			if self.expect('-'): 
+			if self.actual_token.value == '-': 
 				self.read('-')
 				result2 = self.Term(result2)
 				result1-=result2
@@ -103,12 +64,12 @@ class Parser:
 	def Term(self,result):
 		result1, result2 =0,0
 		result1 = self.Factor(result1)
-		while self.expect("*") or self.expect("/") :
-			if self.expect('*'): 
+		while self.actual_token.value=="*" or self.actual_token.value=="/" :
+			if self.actual_token.value == '*': 
 				self.read('*')
 				result2 = self.Factor(result2)
 				result1*=result2
-			if self.expect('/'): 
+			if self.actual_token.value == '/': 
 				self.read('/')
 				result2 = self.Factor(result2)
 				result1/=result2
@@ -118,16 +79,16 @@ class Parser:
 
 	def Factor(self,result):
 		signo=1
-		if self.expect('-'):
+		if self.actual_token.value == '-':
 			self.read('-')
 			signo = -1
-		if self.expect('number', True): 
+		if self.actual_token.type == 'number': 
 			self.read('number', True)
 			result = self.Number(result)
-		if self.expect('decnumber', True): 
+		if self.actual_token.type == 'decnumber': 
 			self.read('decnumber', True)
 			result = self.Number(result)
-		if self.expect('('): 
+		if self.actual_token.value == '(': 
 			self.read('(')
 			result = self.expression(result)
 			self.read(')')
@@ -135,9 +96,9 @@ class Parser:
 		return result
 
 	def Number(self,result):
-		if self.expect('number',True): 
-			self.read('number',True)
-		if self.expect('decnumber', True): 
+		if self.actual_token.type == 'number': 
+			self.read('number', True)
+		if self.actual_token.type == 'decnumber': 
 			self.read('decnumber', True)
 			
 		result = float(self.last_token.value)
@@ -152,7 +113,7 @@ class Token:
 	def __repr__(self):
 		return f'<Token {self.type} value: {self.value} >'
 
-automata = Automata([],['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'ζ', '.'], Transition([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30], '0',[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41], {'number': 20})
+automata = Automata([],['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'ζ', '.', '+', '-', '/', '*'], Transition([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 63, 64, 65, 66], '0',[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41], {'number': 20})
 , [Transition([10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41], None,None, {'number': 20})
 , Transition([10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41], None,None, {'number': 20})
 , Transition([10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41], None,None, {'number': 20})
@@ -163,6 +124,10 @@ automata = Automata([],['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'ζ', 
 , Transition([10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41], None,None, {'number': 20})
 , Transition([10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41], None,None, {'number': 20})
 , Transition([10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41], None,None, {'number': 20})
+, Transition([67], None,None, {'operators': 67})
+, Transition([67], None,None, {'operators': 67})
+, Transition([67], None,None, {'operators': 67})
+, Transition([67], None,None, {'operators': 67})
 , Transition([10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41], None,None, {'number': 20})
 , Transition([10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41], None,None, {'number': 20})
 , Transition([10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41], None,None, {'number': 20})
@@ -193,16 +158,20 @@ automata = Automata([],['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'ζ', 
 , Transition([52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62], None,None, {'decnumber': 62})
 , Transition([52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62], None,None, {'decnumber': 62})
 , Transition([52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62], None,None, {'decnumber': 62})
-], [Transition([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30], '0',[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41], {'number': 20})
-, Transition([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30], '1',[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41], {'number': 20})
-, Transition([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30], '2',[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41], {'number': 20})
-, Transition([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30], '3',[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41], {'number': 20})
-, Transition([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30], '4',[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41], {'number': 20})
-, Transition([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30], '5',[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41], {'number': 20})
-, Transition([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30], '6',[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41], {'number': 20})
-, Transition([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30], '7',[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41], {'number': 20})
-, Transition([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30], '8',[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41], {'number': 20})
-, Transition([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30], '9',[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41], {'number': 20})
+], [Transition([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 63, 64, 65, 66], '0',[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41], {'number': 20})
+, Transition([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 63, 64, 65, 66], '1',[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41], {'number': 20})
+, Transition([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 63, 64, 65, 66], '2',[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41], {'number': 20})
+, Transition([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 63, 64, 65, 66], '3',[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41], {'number': 20})
+, Transition([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 63, 64, 65, 66], '4',[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41], {'number': 20})
+, Transition([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 63, 64, 65, 66], '5',[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41], {'number': 20})
+, Transition([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 63, 64, 65, 66], '6',[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41], {'number': 20})
+, Transition([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 63, 64, 65, 66], '7',[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41], {'number': 20})
+, Transition([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 63, 64, 65, 66], '8',[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41], {'number': 20})
+, Transition([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 63, 64, 65, 66], '9',[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41], {'number': 20})
+, Transition([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 63, 64, 65, 66], '+',[67], {'operators': 67})
+, Transition([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 63, 64, 65, 66], '-',[67], {'operators': 67})
+, Transition([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 63, 64, 65, 66], '/',[67], {'operators': 67})
+, Transition([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 63, 64, 65, 66], '*',[67], {'operators': 67})
 , Transition([10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41], '0',[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41], {'number': 20})
 , Transition([10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41], '1',[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41], {'number': 20})
 , Transition([10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41], '2',[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41], {'number': 20})
@@ -244,6 +213,10 @@ automata = Automata([],['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'ζ', 
 , Transition([10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41], None,None, {'number': 20})
 , Transition([10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41], None,None, {'number': 20})
 , Transition([10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41], None,None, {'number': 20})
+, Transition([67], None,None, {'operators': 67})
+, Transition([67], None,None, {'operators': 67})
+, Transition([67], None,None, {'operators': 67})
+, Transition([67], None,None, {'operators': 67})
 , Transition([10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41], None,None, {'number': 20})
 , Transition([10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41], None,None, {'number': 20})
 , Transition([10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41], None,None, {'number': 20})
@@ -275,7 +248,7 @@ automata = Automata([],['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'ζ', 
 , Transition([52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62], None,None, {'decnumber': 62})
 , Transition([52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62], None,None, {'decnumber': 62})
 ])
-tokens = {'number': {'token': '((0γ1γ2γ3γ4γ5γ6γ7γ8γ9)((0γ1γ2γ3γ4γ5γ6γ7γ8γ9))α)', 'isExcept': True}, 'decnumber': {'token': '(0γ1γ2γ3γ4γ5γ6γ7γ8γ9)δ((0γ1γ2γ3γ4γ5γ6γ7γ8γ9)α)δ.δ(0γ1γ2γ3γ4γ5γ6γ7γ8γ9)δ((0γ1γ2γ3γ4γ5γ6γ7γ8γ9)α)', 'isExcept': False}}
+tokens = {'number': {'token': '((0γ1γ2γ3γ4γ5γ6γ7γ8γ9)((0γ1γ2γ3γ4γ5γ6γ7γ8γ9))α)', 'isExcept': True}, 'decnumber': {'token': '(0γ1γ2γ3γ4γ5γ6γ7γ8γ9)δ((0γ1γ2γ3γ4γ5γ6γ7γ8γ9)α)δ.δ(0γ1γ2γ3γ4γ5γ6γ7γ8γ9)δ((0γ1γ2γ3γ4γ5γ6γ7γ8γ9)α)', 'isExcept': False}, 'operators': {'token': '(+γ-γ/γ*)', 'isExcept': False}}
 keywords = {'while': 'wδhδiδlδe', 'do': 'dδo', 'if': 'iδf'}
 ignoreChars = []
 
@@ -325,8 +298,6 @@ def reader_tester():
             stackTokens.remove(elem)
     
     parser = Parser(stackTokens)
-    if parser.ok:
-        parser.Expr()
-    
+    parser.Expr()
 
 x = reader_tester()    

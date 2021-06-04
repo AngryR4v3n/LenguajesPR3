@@ -31,7 +31,7 @@ def production_tokens(key, string, production_dict, token_dict):
             is_token = check_dict(operator.strip(), token_dict)
             poss_follow = check_follo(symb_to_ignore, ch)
             if poss_follow and follow_ch == '"' and stack[-1].type == "PRODUCTION":
-                print(symb_to_ignore)
+                
                 val = "self.read('" + ch + "')"
                 tkk = Token.Tokenizer(type_t="FOLLOW", value=val, identifier=[ch])
                 stack.append(tkk)
@@ -149,7 +149,7 @@ def code_prods(prod_tokens):
         if prod_tokens[x].type == "WHILE":
             code += (counterTabs*'\t') + "while"
             for i in prod_tokens[x].identifier:
-                code += " self.expect(" + '"' + i + '"' + ") or"
+                code += " self.actual_token.value==" + '"' + i + '"' + " or"
             code = code[:-2]
             code += ":\n"
             flagWhile = x
@@ -158,11 +158,11 @@ def code_prods(prod_tokens):
             
             first = prod_tokens[x].identifier
             if len(first[0]) > 1:
-                code += (counterTabs*'\t') + "if self.expect(" + "'" + first[0] + "'"+", True):\n"
+                code += (counterTabs*'\t') + "if self.actual_token.type == " + "'" + first[0] + "'"+":\n"
                 counterTabs += 1
-                code += (counterTabs*'\t') + "self.read(" + "'" + first[0] + "', True)\n"
+                code += (counterTabs*'\t') + "self.read(" + "'" + first[0] + "')\n"
             else:
-                code += (counterTabs*'\t') + "if self.expect(" + "'" + first[0] + "'"+"):\n"
+                code += (counterTabs*'\t') + "if self.actual_token.value == " + "'" + first[0] + "'"+":\n"
                 counterTabs += 1
                 code += (counterTabs*'\t') + "self.read(" + "'" + first[0] + "')\n"
             #counterTabs += 1
@@ -199,12 +199,12 @@ def code_prods(prod_tokens):
                 if len(firstWhile) <= 2:
                     if counterPipes <= 1:
                         if len(first) > 1:
-                            code += (counterTabs*'\t') + "if self.expect(" + "'" + first + "',True): \n"
+                            code += (counterTabs*'\t') + "if self.actual_token.type == " + "'" + first + "': \n"
                             codeStack = []
                             counterTabs += 1
-                            code += (counterTabs*'\t') + "self.read(" + "'" + first + "',True)\n"
+                            code += (counterTabs*'\t') + "self.read(" + "'" + first + "', True)\n"
                         else:
-                            code += (counterTabs*'\t') + "if self.expect(" + "'" + first + "'): \n"
+                            code += (counterTabs*'\t') + "if self.actual_token.value == " + "'" + first + "': \n"
                             codeStack = []
                             counterTabs += 1
                             code += (counterTabs*'\t') + "self.read(" + "'" + first + "')\n"
@@ -220,11 +220,11 @@ def code_prods(prod_tokens):
                         code += ''.join(reverCodeStack)
                     else:
                         if len(first) > 1:
-                            code += (counterTabs*'\t') + "if self.expect(" + "'" + first + "', True): \n"
+                            code += (counterTabs*'\t') + "if self.actual_token.type == " + "'" + first + "': \n"
                             counterTabs += 1
                             code += (counterTabs*'\t') + "self.read(" + "'" + first + "', True)\n"
                         else:
-                            code += (counterTabs*'\t') + "if self.expect(" + "'" + first + "'): \n"
+                            code += (counterTabs*'\t') + "if self.actual_token.value == " + "'" + first + "': \n"
                             codeStack = []
                             counterTabs += 1
                             code += (counterTabs*'\t') + "self.read(" + "'" + first + "')\n"
@@ -237,12 +237,12 @@ def code_prods(prod_tokens):
                 else:
                     if counterPipes <= 2:
                         if len(first) > 1:
-                            code += (counterTabs*'\t') + "if self.expect(" + "'" + first + "', True): \n"
+                            code += (counterTabs*'\t') + "if self.actual_token.type == " + "'" + first + "': \n"
                             codeStack = []
                             counterTabs += 1
                             code += (counterTabs*'\t') + "self.read(" + "'" + first + "', True)\n"
                         else: 
-                            code += (counterTabs*'\t') + "if self.expect(" + "'" + first + "'): \n"
+                            code += (counterTabs*'\t') + "if self.actual_token.value == " + "'" + first + "': \n"
                             codeStack = []
                             counterTabs += 1
                             code += (counterTabs*'\t') + "self.read(" + "'" + first + "')\n"
@@ -258,11 +258,11 @@ def code_prods(prod_tokens):
                         code += ''.join(reverCodeStack)
                     else:
                         if len(first) > 1:
-                            code += (counterTabs*'\t') + "if self.expect(" + "'" + first + "', True): \n"
+                            code += (counterTabs*'\t') + "if self.actual_token.type == " + "'" + first + "': \n"
                             counterTabs += 1
                             code += (counterTabs*'\t') + "self.read(" + "'" + first + "', True)\n"
                         else:
-                            code += (counterTabs*'\t') + "if self.expect(" + "'" + first + "'): \n"
+                            code += (counterTabs*'\t') + "if self.actual_token.value == " + "'" + first + "': \n"
                             codeStack = []
                             counterTabs += 1
                             code += (counterTabs*'\t') + "self.read(" + "'" + first + "')\n"
@@ -305,7 +305,7 @@ def funct_name(id):
         
 def clean(dict):
     dict["Expr"] = '''
-\t\twhile self.expect('number', True) or self.expect('decnumber', True) or self.expect('-') or self.expect('('):
+\t\twhile self.actual_token.type == 'number' or self.actual_token.type == 'decnumber' or self.actual_token.value == '-' or self.actual_token.value == '(':
 \t\t\tself.Stat()
 \t\t\tself.read(";")
 \t\t\tself.read(".")

@@ -99,7 +99,7 @@ class Parser:
 		self.tokens = tokens
 		self.id_token = 0
 		self.actual_token = self.tokens[self.id_token]
-		self.last_token = ''
+		self.last_token = ""
 
 	def advance( self ):
 		self.id_token += 1
@@ -107,35 +107,21 @@ class Parser:
 			self.actual_token = self.tokens[self.id_token]
 			self.last_token = self.tokens[self.id_token - 1]
 
-	def expect(self, item, arg = False):
-		og = self.id_token
-		possible = False
-		try:
-			ans = self.read(item, arg)
-			if type(ans) == bool:
-				possible = ans
-			else:
-				possible = True
-		except:
-			possible = False
-		self.id_token = og
-		self.actual_token = self.tokens[self.id_token]
-		self.last_token = self.tokens[self.id_token - 1]
-		return possible
-
 	def read(self, item, type = False):
+		
 		if type:
 			if self.actual_token.type == item:
 				self.advance()
 				return True
 			else:
+				print ("Error Sintactico" + str(item))
 				return False
-				#print('expected ', item, ' got ', self.actual_token.type)
 		else:
 			if self.actual_token.value == item:
 				self.advance()
 				return True
 			else:
+				print ("Error Sintactico" + str(item))
 				return False
 """
 methods = atgAutomatas.methods_string()
