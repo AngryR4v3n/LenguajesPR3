@@ -165,12 +165,9 @@ class ATGReader():
         prod_keys = self.productions.keys()
         prod_tokens = {}
         translator = {}
-        #self.productions = prod_tokens
-        for key2 in prod_keys:
-            method, string = production_utils.funct_name(key2)
-            translator[string] = key2
-            #self.methods[method] = prod_tokens[key2]
 
+        
+        #producimos codigo de cada produccion
         for key in prod_keys:
             right_hand = self.productions[key]
             res = production_utils.production_tokens(key, right_hand, self.productions, self.tokens)
@@ -180,25 +177,15 @@ class ATGReader():
         
         prod_tokens = production_utils.clean(prod_tokens)
         
+        #Le damos los nombres sintacticamente apropiados para python a cada produccion.
         for key2 in prod_keys:
-            method, string = production_utils.funct_name(key2)
+            method, string = production_utils.name_def(key2)
             translator[string] = key2
             self.methods[method] = prod_tokens[key2]
         
-        
-
-        
-        
-        
-            
-            
-
+    
         print("done")
 
-
-    
-
-            
 
     def grammar_and_op_check(self, currentLine):
         #revisamos que todo nice en gramatica, que exista un igual y que el final sea un . 

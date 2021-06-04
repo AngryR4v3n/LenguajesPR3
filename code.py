@@ -9,37 +9,40 @@ class Parser:
 	def __init__(self, tokens):
 		self.tokens = tokens
 		self.id_token = 0
-		self.actual_token = self.tokens[self.id_token]
-		self.last_token = ""
+		self.curr_token = self.tokens[self.id_token]
+		self.other_token = ""
 
-	def advance( self ):
+	def next_token( self ):
 		self.id_token += 1
 		if self.id_token < len(self.tokens):
-			self.actual_token = self.tokens[self.id_token]
-			self.last_token = self.tokens[self.id_token - 1]
+			self.curr_token = self.tokens[self.id_token]
+			self.other_token = self.tokens[self.id_token - 1]
 
-	def read(self, item, type = False):
-		
-		if type:
-			if self.actual_token.type == item:
-				self.advance()
+	def expect(self, item, tkk = False):
+		charCount = 1
+		for j in range(0,self.id_token):
+			charCount += len(self.tokens[j].value)
+			
+		if tkk:
+			if self.curr_token.type == item:
+				self.next_token()
 				return True
 			else:
-				print ("Error Sintactico" + str(item))
+				print (f'#Syntax Error at char {charCount}, expected: ' + '"' + str(item) + '"' + f" but got {self.curr_token.value}")
 				return False
 		else:
-			if self.actual_token.value == item:
-				self.advance()
+			if self.curr_token.value == item:
+				self.next_token()
 				return True
 			else:
-				print ("Error Sintactico" + str(item))
+				print (f'#Syntax Error at char {charCount}, expected: ' + '"' + str(item) + '"' + f" but got {self.curr_token.value}")
 				return False
 	def Expr(self):
 
-		while self.actual_token.type == 'number' or self.actual_token.type == 'decnumber' or self.actual_token.value == '-' or self.actual_token.value == '(':
-			self.Stat()
-			self.read(";")
-			self.read(".")
+    		while self.curr_token.type == 'number' or self.curr_token.type == 'decnumber' or self.curr_token.value == '-' or self.curr_token.value == '(':
+    			self.Stat()
+    			self.expect(";")
+    			self.expect(".")
     
 	def Stat(self):
 		value =0
@@ -49,13 +52,13 @@ class Parser:
 	def expression(self,result):
 		result1, result2 =0, 0
 		result1 = self.Term(result1)
-		while self.actual_token.value=="+" or self.actual_token.value=="-" :
-			if self.actual_token.value == '+': 
-				self.read('+')
+		while self.curr_token.value=="+" or self.curr_token.value=="-" :
+			if self.curr_token.value == '+': 
+				self.expect('+')
 				result2 = self.Term(result2)
 				result1+=result2
-			if self.actual_token.value == '-': 
-				self.read('-')
+			if self.curr_token.value == '-': 
+				self.expect('-')
 				result2 = self.Term(result2)
 				result1-=result2
 				
@@ -64,13 +67,13 @@ class Parser:
 	def Term(self,result):
 		result1, result2 =0,0
 		result1 = self.Factor(result1)
-		while self.actual_token.value=="*" or self.actual_token.value=="/" :
-			if self.actual_token.value == '*': 
-				self.read('*')
+		while self.curr_token.value=="*" or self.curr_token.value=="/" :
+			if self.curr_token.value == '*': 
+				self.expect('*')
 				result2 = self.Factor(result2)
 				result1*=result2
-			if self.actual_token.value == '/': 
-				self.read('/')
+			if self.curr_token.value == '/': 
+				self.expect('/')
 				result2 = self.Factor(result2)
 				result1/=result2
 				
@@ -79,29 +82,29 @@ class Parser:
 
 	def Factor(self,result):
 		signo=1
-		if self.actual_token.value == '-':
-			self.read('-')
+		if self.curr_token.value == '-':
+			self.expect('-')
 			signo = -1
-		if self.actual_token.type == 'number': 
-			self.read('number', True)
+		if self.curr_token.type == 'number': 
+			self.expect('number', True)
 			result = self.Number(result)
-		if self.actual_token.type == 'decnumber': 
-			self.read('decnumber', True)
+		if self.curr_token.type == 'decnumber': 
+			self.expect('decnumber', True)
 			result = self.Number(result)
-		if self.actual_token.value == '(': 
-			self.read('(')
+		if self.curr_token.value == '(': 
+			self.expect('(')
 			result = self.expression(result)
-			self.read(')')
+			
 		result*=signo
 		return result
 
 	def Number(self,result):
-		if self.actual_token.type == 'number': 
-			self.read('number', True)
-		if self.actual_token.type == 'decnumber': 
-			self.read('decnumber', True)
+		if self.curr_token.type == 'number': 
+			self.expect('number', True)
+		if self.curr_token.type == 'decnumber': 
+			self.expect('decnumber', True)
 			
-		result = float(self.last_token.value)
+		result = float(self.other_token.value)
 		return result
 
 

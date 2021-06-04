@@ -98,30 +98,33 @@ class Parser:
 	def __init__(self, tokens):
 		self.tokens = tokens
 		self.id_token = 0
-		self.actual_token = self.tokens[self.id_token]
-		self.last_token = ""
+		self.curr_token = self.tokens[self.id_token]
+		self.other_token = ""
 
-	def advance( self ):
+	def next_token( self ):
 		self.id_token += 1
 		if self.id_token < len(self.tokens):
-			self.actual_token = self.tokens[self.id_token]
-			self.last_token = self.tokens[self.id_token - 1]
+			self.curr_token = self.tokens[self.id_token]
+			self.other_token = self.tokens[self.id_token - 1]
 
-	def read(self, item, type = False):
-		
-		if type:
-			if self.actual_token.type == item:
-				self.advance()
+	def expect(self, item, tkk = False):
+		charCount = 1
+		for j in range(0,self.id_token):
+			charCount += len(self.tokens[j].value)
+			
+		if tkk:
+			if self.curr_token.type == item:
+				self.next_token()
 				return True
 			else:
-				print ("Error Sintactico" + str(item))
+				print (f'#Syntax Error at char {charCount}, expected: ' + '"' + str(item) + '"' + f" but got {self.curr_token.value}")
 				return False
 		else:
-			if self.actual_token.value == item:
-				self.advance()
+			if self.curr_token.value == item:
+				self.next_token()
 				return True
 			else:
-				print ("Error Sintactico" + str(item))
+				print (f'#Syntax Error at char {charCount}, expected: ' + '"' + str(item) + '"' + f" but got {self.curr_token.value}")
 				return False
 """
 methods = atgAutomatas.methods_string()
